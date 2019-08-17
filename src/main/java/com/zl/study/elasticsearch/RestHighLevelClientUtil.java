@@ -22,8 +22,8 @@ import java.io.IOException;
 import java.util.Arrays;
 import java.util.Map;
 
-public class ESUtil {
-    private RestHighLevelClient client = new RestHighLevelClient(RestClient.builder(new HttpHost("127.0.0.1", 9200, "http")));;
+public class RestHighLevelClientUtil {
+    private RestHighLevelClient client = new RestHighLevelClient(RestClient.builder(new HttpHost("127.0.0.1", 9200, "http")));
 
     /**
      * 查询
@@ -175,7 +175,7 @@ public class ESUtil {
             //索引
             IndexRequest request = new IndexRequest("test");
             //文档id
-            request.id("2");
+            request.id("1");
             String jsonString = "{" +
                     "\"user\":\"周林\"," +
                     "\"postDate\":\"2013-01-30\"," +
@@ -184,6 +184,7 @@ public class ESUtil {
             //以字符串形式提供的文档源
             request.source(jsonString, XContentType.JSON);
             client.index(request, RequestOptions.DEFAULT);
+            client.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
