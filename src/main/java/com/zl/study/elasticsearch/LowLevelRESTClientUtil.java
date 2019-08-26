@@ -2,6 +2,7 @@ package com.zl.study.elasticsearch;
 
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
+import org.apache.http.client.methods.HttpDelete;
 import org.apache.http.util.EntityUtils;
 import org.elasticsearch.client.*;
 import org.junit.After;
@@ -159,6 +160,16 @@ public class LowLevelRESTClientUtil {
             request.addParameter("user", "zl");
             request.addParameter("message", "trying out low leve Elasticsearch");
             Response response = client.performRequest(request);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void del () {
+        try {
+            Request request = new Request(HttpDelete.METHOD_NAME,"/test/_doc/WzZzimwBJe7d3jZ-RXJT");
+            client.performRequest(request);
         } catch (IOException e) {
             e.printStackTrace();
         }
