@@ -9,6 +9,7 @@ import org.elasticsearch.client.Request;
 import org.elasticsearch.client.Response;
 import org.elasticsearch.client.RestClient;
 import org.elasticsearch.client.RestClientBuilder;
+import org.springframework.util.Assert;
 
 import java.io.IOException;
 
@@ -22,7 +23,7 @@ public class ElasticsearchUtlis {
 
     // create：zhoulin 2019/08/22
     public static RestClientBuilder getClientBuilder () {
-        return RestClient.builder(new HttpHost("192.168.1.23", 9101, "http"));
+        return RestClient.builder(new HttpHost("127.0.0.1", 9101, "http"));
     }
 
     // create：zhoulin 2019/08/22
@@ -33,7 +34,7 @@ public class ElasticsearchUtlis {
     /**
      * 将ES返回值以Json字符串格式返回
      * @param request 请求
-     * @return Json字符串
+     * @return 响应Json字符串
      */
     // create：zhoulin 2019/08/22
     public static String getDataJsonString (Request request) {
@@ -50,32 +51,66 @@ public class ElasticsearchUtlis {
     }
 
     /**
+     * 将ES返回值以Json返回
+     * @param key 字段名
+     * @param value 字段值
+     * @param endpoint 请求Url
+     * @param precise true:精确 false 模糊
+     * @return 响应JSONObjcet
+     */
+    // create：zhoulin 2019/08/27
+    public static JSONObject getDataJson (Object key, Object value, String endpoint, boolean precise) {
+        return commonQuery(key, value, endpoint, precise);
+    }
+
+    /**
      * 对单个字段进行校验
      * @param key 字段名
      * @param value 字段值
+     * @param endpoint 请求Url
+     * @param precise true:精确 false 模糊
      */
     // create：zhoulin 2019/08/22
-    public static void judgeExist (Object key, Object value, String endpoint) {
-        Integer count = getAmount(key, value, endpoint);
-//        Assert.state(count != 0, "没有该文件");
+    public static void judgeExist (Object key, Object value, String endpoint, boolean precise) {
+        Integer count = getAmount(key, value, endpoint, precise);
+        Assert.state(count != 0, "没有该文件");
     }
 
     /**
      * 查询该字段对应的数量
      * @param key 字段名
      * @param value 字段值
+     * @param endpoint 请求Url
+     * @param precise true:精确 false 模糊
      */
     // create：zhoulin 2019/08/22
-    public static Integer getAmount (Object key, Object value, String endpoint) {
-        endpoint = endpoint == null ? "sense_4" : endpoint;
-        Request request = new Request(HttpGet.METHOD_NAME, endpoint + "/_search");
-        request.setJsonEntity("{\"query\": {\"bool\": {\"must\": [{\"match\": {\"" + key +
-                "\": \"" + value + "\"}}]}}, \"size\": 0}");
-        String dataJsonString = getDataJsonString(request);
-        JSONObject jsonObject = JSON.parseObject(dataJsonString);
-        JSONObject hitsList = jsonObject.getJSONObject("hits");
+    public static Integer getAmount (Object key, Object value, String endpoint, boolean precise) {
+        JSONObject hitsList = commonQuery(key, value, endpoint, precise);
         JSONObject totalList = hitsList.getJSONObject("total");
         return totalList.getInteger("value");
+    }
+
+    /**
+     * 公共查询代码
+     * @param key 字段名
+     * @param value 字段值
+     * @param endpoint 请求Url
+     * @param precise true:精确 false 模糊
+     * @return 响应JSONObjcet
+     */
+    // create：zhoulin 2019/08/27
+    private static JSONObject commonQuery (Object key, Object value, String endpoint, boolean precise) {
+        endpoint = endpoint == null ? "sense_4" : endpoint;
+        Request request = new Request(HttpGet.METHOD_NAME, endpoint + "/_search");
+        String jsonEntity = precise ?
+                "{\"query\": {\"term\": {\"" + key + "\": \"" + value + "\"}}}"
+                :
+                "{\"query\": {\"match\": {\"" + key + "\": \"" + value + "\"}}}";
+        request.setJsonEntity(jsonEntity);
+        String dataJsonString = ElasticsearchUtlis.getDataJsonString(request);
+        JSONObject jsonObject = JSON.parseObject(dataJsonString);
+        JSONObject hits = jsonObject.getJSONObject("hits");
+        return jsonObject.getJSONObject("hits");
     }
 
 }
