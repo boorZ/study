@@ -1,5 +1,10 @@
 package com.zl.study.basics.shifting;
 
+import org.junit.Test;
+
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * 描 述: 学习位移运算符
  * 作 者: ZhouLin
@@ -8,66 +13,38 @@ package com.zl.study.basics.shifting;
  **/
 public class Demo {
     /**
-     * 按位与&：两位全为1，结果为1
-     *
-     * 按位或|：两位有一个为1，结果为1
-     *
-     * 按位异或^：两位一个为0，一个为1，结果为1
-     *
-     * 按位取反：0->1，1->0
+     *  运算符      含义
+     *  <<          左移运算符，将运算符左边的对象向左移动运算符右边指定的位数（在低位补0）
+     *  >>          "有符号"右移运算 符，将运算符左边的对象向右移动运算符右边指定的位数。使用符号扩展机制，也就是说，如果值为正，则在高位补0，如果值为负，则在高位补1.
+     *  >>>         "无符号"右移运算 符，将运算符左边的对象向右移动运算符右边指定的位数。采用0扩展机制，也就是说，无论值的正负，都在高位补0
      */
-    public static void main(String[] args) {
-//        int a=1>>2;         // 101
-//        int b=-1>>2;0
-//        int c=1<<2;
-//        int d=-1<<2;
-//        int e=3>>>2;
-//        System.out.println();
-//        System.out.println(a);
 
-//        binaryToDecimal1(10);
-//        binaryToDecimal2(10);
-//        binaryToDecimal3(10);
-
-        binaryToDecimal1(10);
-        binaryToDecimal2(10);
-        function13(10);
+    @Test
+    public void leftOperator () {
+        /*
+         * 左移运算符用“<<”表示，是将运算符左边的对象，向左移动运算符右边指定的位数，并且在低位补零。其实，向左移n 位，就相当于乘上2 的n 次方
+         */
+        int a = 2, b = 2, c;
+        c = a << b;
+        System.out.println("a 移位的结果是"+c);
+    }
+    @Test
+    public void unsignedRightOperator () {
+        /*
+         * 右移运算符无符号用“>>>”表示，是将运算符左边的对象向右移动运算符右边指定的位数，并且在高位补0，其实右移n 位，就相当于除上2 的n 次方
+         */
+        int a = 16, b = 2, c;
+        c = a >>> b;
+        System.out.println("a 移位的结果是"+c);
     }
 
-    /**
-     * 输入一个十进制数n，每次用n除以2，把余数记下来，再用商去除以2...依次循环，直到商为0结束，把余数倒着依次排列，就构成了转换后的二进制数。
-     */
-    public static void binaryToDecimal1(int n){
-        int t = 0;      //用来记录位数
-        int bin = 0;    //用来记录最后的二进制数
-        int r = 0;      //用来存储余数
-        while(n != 0){
-            r = n % 2;
-            n = n / 2;
-            bin += r * Math.pow(10,t);
-            t++;
-        }
-        System.out.println(bin);
+    @Test
+    public void list () {
+        List<String> list = new ArrayList<>();
+        list.add("《1》");
+        list.add("《2》");
+        list.add("《3》");
+//        list.
     }
 
-    /**
-     * 移位操作
-     *      对一个十进制数进行移位操作，即：将最高位的数移至最低位（移31位），除过最低位其余位置清零，
-     *      使用& 操作，可以使用和1相与（&），由于1在内存中除过最低位是1，其余31位都是零，然后把这个数按十进制输出；再移次高位，做相同的操作，直到最后一位
-     **/
-    public static void binaryToDecimal2(int n){
-        for(int i = 31;i >= 0; i--) {
-//            System.out.println((n >>> i) + "=======================");
-            System.out.print(n >>> i & 1);
-        }
-        System.out.println();
-    }
-
-    /**
-     * 调用API函数
-     */
-    public static void function13(int n){
-        String result = Integer.toBinaryString(n);
-        System.out.println(result);
-    }
 }
