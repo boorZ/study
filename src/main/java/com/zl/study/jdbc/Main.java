@@ -1,21 +1,17 @@
 package com.zl.study.jdbc;
 
 import com.zl.study.jdbc.bean.TRelationshipBO;
-import com.zl.study.jdbc.bean.ToAndFromListBO;
 import com.zl.study.jdbc.c3p0.C3P0Utils;
-import org.apache.commons.collections4.map.LinkedMap;
+import org.junit.Test;
 
 import java.beans.PropertyVetoException;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.text.SimpleDateFormat;
+import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /**
  * @author 周林
@@ -60,9 +56,10 @@ public class Main {
         List<TRelationshipBO> list = new ArrayList<>();
 
         List<TRelationshipBO> relatList = getRelatList();
-        Map<Long, List<TRelationshipBO>> atlasIdMap = relatList.stream().collect(Collectors.groupingBy(TRelationshipBO::getAtlasId));
         List<List<TRelationshipBO>> reListList = new ArrayList<> ();
         List<List<TRelationshipBO>> reListList2 = new ArrayList<> ();
+
+        Map<Long, List<TRelationshipBO>> atlasIdMap = relatList.stream().collect(Collectors.groupingBy(TRelationshipBO::getAtlasId));
         for (Map.Entry<Long, List<TRelationshipBO>> atlasMap : atlasIdMap.entrySet()) {
             for (TRelationshipBO relationship : atlasMap.getValue()) {
                 Long atlasId = relationship.getAtlasId();
@@ -77,13 +74,27 @@ public class Main {
                         reList.add(relationship2);
                     }
                 }
-                if (reList.size() > 1) {
+                if (reList.size() == 2) {
                     reListList.add(reList);
                 }
                 if (reList.size() > 2) {
                     reListList2.add(reList);
                 }
             }
+
+        }
+
+        for (List<TRelationshipBO> relationshipList : reListList) {
+            TRelationshipBO relationshipBo1 = relationshipList.get(0);
+            TRelationshipBO relationshipBo2 = relationshipList.get(1);
+            Date createTime1 = relationshipBo1.getCreateTime();
+            Date createTime2 = relationshipBo2.getCreateTime();
+            Calendar calen = Calendar.getInstance();
+            calen.setTime(createTime1);
+            System.out.println(createTime1);
+            System.out.println();
+//            LocalDateTime.
+//            LocalDate parse = LocalDate.parse(createTime1, DateTimeFormatter.RFC_1123_DATE_TIME);
 
         }
         System.out.println();
@@ -123,43 +134,13 @@ public class Main {
 //
 //        System.out.println(reListList);
 
-
-
-
-//        // 根据图谱Id分组
-//        Map<Long, List<TRelationshipBO>> atlasIdMap = relatList.stream().collect(Collectors.groupingBy(TRelationshipBO::getAtlasId));
-//        for (Map.Entry<Long, List<TRelationshipBO>> atlasMap : atlasIdMap.entrySet()) {
-//            // atlasId
-//            List<TRelationshipBO> value = atlasMap.getValue();
-//            Map<Long, List<TRelationshipBO>> collect = value.stream().collect(Collectors.groupingBy(TRelationshipBO::getToNodeId));
-//            for (Map.Entry<Long, List<TRelationshipBO>> toNodeMap : collect.entrySet()) {
-//                // toNodeId
-//                List<Long> fromNodeIdList = toNodeMap.getValue().stream().map(TRelationshipBO::getFromNodeId).collect(Collectors.toList());
-//                if (fromNodeIdList.size() > 1) {
-//                    System.out.println(toNodeMap.getKey() + "===========" + fromNodeIdList);
-//                    List<Long> duplicateElements = getDuplicateElements(fromNodeIdList);
-//                    System.out.println(toNodeMap.getKey() + "===========" + duplicateElements);
-//                    System.out.println();
-//                    if (duplicateElements.size() > 0) {
-//                        list.add(new TRelationshipBO(atlasMap.getKey(), ));
-//                        return;
-//                    }
-//                }
-//            }
-//        }
-
-
-
-//        TRelationshipBO judgeRelat = new TRelationshipBO();
-//        for (TRelationshipBO relat : relatList) {
-//            TRelationshipBO newRelat = new TRelationshipBO(relat.getAtlasId(), relat.getToNodeId(), relat.getFromNodeId());
-//            if (!newRelat.equals(judgeRelat)) {
-//                judgeRelat = newRelat;
-//            } {
-//                list.add();
-//            }
-//
-//        }
+    }
+    @Test
+    public void testDate() {
+        Date date1 = new Date();
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        String format = sdf.format(date1);
+        System.out.println(format);
     }
 
     private static List<TRelationshipBO> getRelatList() throws PropertyVetoException, SQLException {
