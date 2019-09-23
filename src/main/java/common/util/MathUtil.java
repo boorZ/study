@@ -44,7 +44,7 @@ public class MathUtil {
      *            加数
      * @return 两个参数的和
      */
-    public static Double add(Object num1, Object num2) {
+    public static Double addPrecise(Object num1, Object num2) {
         BigDecimal result = bigDecimal(num1).add(bigDecimal(num2));
         return result.setScale(DEF_SCALE, BigDecimal.ROUND_HALF_UP).doubleValue();
     }
