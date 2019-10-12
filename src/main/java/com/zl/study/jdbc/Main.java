@@ -12,6 +12,7 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /**
  * @author 周林
@@ -53,10 +54,16 @@ public class Main {
         return map;
     }
     public static void main(String[] args) throws PropertyVetoException, SQLException {
+        // 已处理的关系
         List<TRelationshipBO> list = new ArrayList<>();
+        // 要修改的关系
+        List<TRelationshipBO> putList = new ArrayList<>();
+        String time = "2019-09-18";
 
         List<TRelationshipBO> relatList = getRelatList();
+        // 包含2条关系
         List<List<TRelationshipBO>> reListList = new ArrayList<> ();
+        // 包含3条及3条以上
         List<List<TRelationshipBO>> reListList2 = new ArrayList<> ();
 
         Map<Long, List<TRelationshipBO>> atlasIdMap = relatList.stream().collect(Collectors.groupingBy(TRelationshipBO::getAtlasId));
@@ -84,55 +91,77 @@ public class Main {
 
         }
 
+        reListList = reListList.stream().distinct().collect(Collectors.toList());
+        reListList2 = reListList2.stream().distinct().collect(Collectors.toList());
+
+        // 未处理的2条关系
+        List<List<TRelationshipBO>> reUntreatedListList = new ArrayList<> ();
         for (List<TRelationshipBO> relationshipList : reListList) {
             TRelationshipBO relationshipBo1 = relationshipList.get(0);
             TRelationshipBO relationshipBo2 = relationshipList.get(1);
-            Date createTime1 = relationshipBo1.getCreateTime();
-            Date createTime2 = relationshipBo2.getCreateTime();
-            Calendar calen = Calendar.getInstance();
-            calen.setTime(createTime1);
-            System.out.println(createTime1);
-            System.out.println();
-//            LocalDateTime.
-//            LocalDate parse = LocalDate.parse(createTime1, DateTimeFormatter.RFC_1123_DATE_TIME);
+            String createTime1 = relationshipBo1.getCreateTime().toString();
+            String createTime2 = relationshipBo2.getCreateTime().toString();
+            if ((createTime1.equals(time) && !createTime2.equals(time))) {
+                list.add(relationshipBo1);
+            } else if ((createTime2.equals(time) && !createTime1.equals(time))) {
+                list.add(relationshipBo2);
+            } else if ((createTime2.equals(time) && createTime1.equals(time))) {
+                if (relationshipBo1.getRelationshipName().equals("导入关系")) {
+                    list.add(relationshipBo1);
+                } else if (relationshipBo2.getRelationshipName().equals("导入关系")) {
+                    list.add(relationshipBo2);
+                } else {
+                    relationshipBo1.setRelationshipName("废止、修改-导入关系");
+                    putList.add(relationshipBo1);
+                    list.add(relationshipBo2);
+                }
+            } else {
+                reUntreatedListList.add(relationshipList);
+            }
 
         }
-        System.out.println();
-//        Map<Long, List<TRelationshipBO>> atlasIdMap = relatList.stream().collect(Collectors.groupingBy(TRelationshipBO::getAtlasId));
-//        for (Map.Entry<Long, List<TRelationshipBO>> atlasMap : atlasIdMap.entrySet()) {
-//            List<TRelationshipBO> atlasValueList = atlasMap.getValue();
-//            Map<Long, List<Long>> fromNodeIdList = getFromNodeIdList(atlasValueList);
-//            for (TRelationshipBO atlasValue : atlasValueList) {
-//                Long toNodeId = atlasValue.getToNodeId();
-//                Long fromNodeId = atlasValue.getFromNodeId();
-//                for (Map.Entry<Long, List<Long>> longListEntry : fromNodeIdList.entrySet()) {
-//                    if (toNodeId.equals(longListEntry.getKey()) && longListEntry.getValue().contains(fromNodeId)) {
-//                        list.add(atlasValue);
-//                    }
-//                }
-//            }
-//        }
-//        List<List<TRelationshipBO>> reListList = new ArrayList<> ();
-//        for (TRelationshipBO relationship : list) {
-//            Long atlasId = relationship.getAtlasId();
-//            Long toNodeId = relationship.getToNodeId();
-//            Long fromNodeId = relationship.getFromNodeId();
-//            List<TRelationshipBO> reList = new ArrayList<>();
-//            if (atlasId.equals(143091804504330240L) && toNodeId.equals(131844640738381824L) && fromNodeId.equals(131901860557623296L)){
-//                System.out.println();
-//            }
-//            for (TRelationshipBO relationship2 : list) {
-//                Long newAtlasId = relationship.getAtlasId();
-//                Long newToNodeId = relationship2.getToNodeId();
-//                Long newFromNodeId = relationship2.getFromNodeId();
-//                if (newAtlasId.equals(atlasId) && newToNodeId.equals(toNodeId) && newFromNodeId.equals(fromNodeId)) {
-//                    reList.add(relationship2);
-//                }
-//            }
-//            reListList.add(reList);
-//        }
-//
-//        System.out.println(reListList);
+
+        // 未处理的3条及3条以上关系
+        List<List<TRelationshipBO>> re3UntreatedListList = new ArrayList<> ();
+        for (List<TRelationshipBO> relationship : reListList2) {
+            int size = relationship.size();
+            // 创建时间为2019-09-18
+            List<TRelationshipBO> collect = relationship.stream().filter(re -> re.getCreateTime().toString().equals(time)).collect(Collectors.toList());
+            if ((size - collect.size()) == 1) {
+                list.addAll(collect);
+            } else if ((size - collect.size()) == 0) {
+                TRelationshipBO tRelationshipBo = relationship.get(0);
+                // 修改该关系的名称为 修改、废止-导入关系
+                tRelationshipBo.setRelationshipName("修改、废止-导入关系");
+                putList.add(tRelationshipBo);
+                for (int i = 1; i < relationship.size(); i++) {
+                    list.add(relationship.get(i));
+                }
+            } else{
+                re3UntreatedListList.add(relationship);
+            }
+        }
+//        System.out.println(list);
+
+        // 不同图谱，同关系 关系
+        List<List<TRelationshipBO>> untreatedListList = new ArrayList<> ();
+        for (TRelationshipBO tRelationship1 : list) {
+            List<TRelationshipBO> zl = new ArrayList<>();
+            for (TRelationshipBO tRelationship2 : list) {
+                if ((!tRelationship1.getAtlasId().equals(tRelationship2)) && ((tRelationship1.getToNodeId().equals(tRelationship2.getToNodeId()) && (tRelationship1.getFromNodeId().equals(tRelationship2.getFromNodeId()))) )) {
+                    zl.add(tRelationship2);
+                }
+            }
+            if (zl.size() > 1) {
+                untreatedListList.add(zl);
+            }
+        }
+        untreatedListList.forEach(list::removeAll);
+
+         String s = list.stream().map(m->m.getRelationshipId().toString()).collect(Collectors.joining(", ", "(", ")"));
+         String s2 = putList.stream().map(m->m.getRelationshipId().toString()).collect(Collectors.joining(", ", "(", ")"));
+
+        System.out.println(s);
 
     }
     @Test
@@ -142,6 +171,7 @@ public class Main {
         String format = sdf.format(date1);
         System.out.println(format);
     }
+
 
     private static List<TRelationshipBO> getRelatList() throws PropertyVetoException, SQLException {
         Connection conn = C3P0Utils.getconnection();
@@ -168,5 +198,29 @@ public class Main {
         ps.close();
         conn.close();
         return relationshipList;
+    }
+
+    @Test
+    public void test () {
+        String a = "废止-导入关系", b = "修改-导入关系";
+
+
+
+        List<String> strList = new ArrayList<String>();
+        List<String> strList2 = new ArrayList<String>();
+//        for(int i = 0; i < 10; i ++) {
+//            strList.add("aaa>>" + i);
+//            strList2.add("aaa>>" + (10 - i));
+//        }
+        strList.add(a);
+        strList2.add(b);
+        //求出并集
+        strList2.removeAll(strList);
+        strList2.addAll(strList);
+        System.out.println("并集大小：" + strList2.size());
+
+        for(int i = 0; i < strList2.size(); i++) {
+            System.out.println(strList2.get(i));
+        }
     }
 }

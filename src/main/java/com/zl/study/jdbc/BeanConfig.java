@@ -10,7 +10,7 @@ public class BeanConfig {
     /** 数据库用户 **/
     public static String JPA_USER = "root";
     /** 数据库密码 **/
-    public static String JPA_PASSWORD = "123456";
+    public static String JPA_PASSWORD = "Root123456";
     /** 数据库 **/
     public static String JPA_DATABASE = "taxknowledge2";
 
