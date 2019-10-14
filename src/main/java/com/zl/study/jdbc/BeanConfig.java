@@ -12,7 +12,8 @@ public class BeanConfig {
     /** 数据库密码 **/
     public static String JPA_PASSWORD = "Root123456";
     /** 数据库 **/
-    public static String JPA_DATABASE = "taxknowledge2";
+//    public static String JPA_DATABASE = "taxknowledge2";
+    public static String JPA_DATABASE = "tax_sense_1";
 
     /** 不同文件导入的包 **/
     public static String JPA_IMPORTS_BEAN = "import common.model.BaseEntity;\nimport javax.persistence.Column;\nimport javax.persistence.Entity;\nimport javax.persistence.Table;";

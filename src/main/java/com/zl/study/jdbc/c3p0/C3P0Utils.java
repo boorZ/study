@@ -51,4 +51,8 @@ public class C3P0Utils {
         con.close();
         cpds.close();
     }
+    public static void closeSimp() throws SQLException {
+        con.close();
+        cpds.close();
+    }
 }

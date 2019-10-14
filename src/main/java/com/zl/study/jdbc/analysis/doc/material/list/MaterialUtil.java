@@ -1,5 +1,6 @@
 package com.zl.study.jdbc.analysis.doc.material.list;
 
+import com.zl.study.jdbc.c3p0.C3P0Utils;
 import org.apache.poi.hssf.usermodel.*;
 import org.apache.poi.ss.usermodel.FillPatternType;
 import org.apache.poi.ss.usermodel.HorizontalAlignment;
@@ -9,13 +10,16 @@ import org.apache.poi.xwpf.usermodel.XWPFDocument;
 import org.apache.poi.xwpf.usermodel.XWPFTable;
 import org.apache.poi.xwpf.usermodel.XWPFTableCell;
 import org.apache.poi.xwpf.usermodel.XWPFTableRow;
+import org.junit.Test;
 
+import java.beans.PropertyVetoException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -27,18 +31,50 @@ import java.util.stream.Collectors;
  * @date 2019/10/11
  */
 public class MaterialUtil {
+    @Test
+    public void test01() {
+        String name = "经办人身份证明";
+//        String name = "A01075《“多证合一”登记信息确认表》";
+        System.out.println(name.replaceAll(name.replaceAll("^(\\w*)", ""), ""));
+
+//        String nameEnd = "1.1.1.3自然人自主报告身份信息";
+//        System.out.println(nameEnd.replaceAll(nameEnd.replaceAll("^[\\d\\.]+", ""), ""));
+    }
 
     public static void main(String[] args) {
-
         List<MaterialBean> allSonFile = getAllSonFile("E:\\拆分文档");
-        String filename = "【相关资料清单】.xls";
-        for (MaterialBean materialBean : allSonFile) {
-            String filepath = materialBean.getDoc().getPath()+"\\";
-            createExcel(filepath, filename, materialBean);
-        }
+        // TODO SQL
+        final int[] i = {0};
+        allSonFile.forEach( materialBean -> materialBean.getMaterialContent().forEach((key, value) -> value.forEach(v -> {
+            i[0]++;
+            try {
+                Connection conn = C3P0Utils.getconnection();
+                String name = materialBean.getDoc().getName();
+                String docSerial = name.replaceAll(name.replaceAll("^[\\d\\.]+", ""), "");
+                String materialSerial = v.replaceAll(v.replaceAll("^(\\w*)", ""), "");
+                String sql = "INSERT INTO `t_material_list` VALUES ("+i[0]+", '"+docSerial+"','"+materialBean.getDoc().getName()+"', '"+
+                        materialSerial+"', '"+key+"', '"+v+"', null, null, null, null);";
+                PreparedStatement ps = conn.prepareStatement(sql);
+                ps.addBatch();
+                ps.executeUpdate();
+                ps.close();
+                conn.close();
+                C3P0Utils.closeSimp();
+            } catch (SQLException e) {
+                e.printStackTrace();
+            } catch (PropertyVetoException e) {
+                e.printStackTrace();
+            }
+        })));
 
-//        MaterialBean materialBean = readWordxMaterialList("E:\\拆分文档 - 副本\\4法律追责与救济事项\\" +
-//                "4.4相互协商程序\\4.4.2特别纳税调整相互协商程序申请.docx");
+        // TODO EXCEL
+//        String filename = "【相关资料清单】.xls";
+//        for (MaterialBean materialBean : allSonFile) {
+//            System.out.println(materialBean);
+//            String filepath = materialBean.getDoc().getPath()+"\\";
+//            createExcel(filepath, filename, materialBean);
+//        }
+
     }
 
     private static List<MaterialBean> getAllSonFile(String path) {
@@ -91,6 +127,7 @@ public class MaterialUtil {
 
     private static MaterialBean readWordxMaterialList(String filePath) {
         MaterialBean materialBean = new MaterialBean();
+        Map<String, List<String>> map = new HashMap<>();
         try {
             File file = new File(filePath);
             FileInputStream fis = new FileInputStream(file);
@@ -104,13 +141,13 @@ public class MaterialUtil {
                 // 获取标题 想要的列名位置
                 Integer columnIndex = null;
                 List<XWPFTableCell> tableCells = table.getRow(0).getTableCells();
+
                 for (int i = 0; i < tableCells.size(); i++) {
                     String text = tableCells.get(i).getText();
                     Pattern pattern = Pattern.compile("[名称 资料名称]");
                     Matcher matcher = pattern.matcher(text);
                     if (matcher.find()) {
                         columnIndex = i;
-                        materialBean.setMaterialName(tableCells.get(i).getText());
                     }
                 }
                 if (columnIndex == null) {
@@ -124,9 +161,9 @@ public class MaterialUtil {
                     List<XWPFTableCell> cells = row.getTableCells();
                     materialContentList.add(cells.get(columnIndex).getText());
                 }
-                materialBean.setMaterialContent(materialContentList);
+                map.put(tableCells.get(columnIndex).getText(), materialContentList);
             }
-
+            materialBean.setMaterialContent(map);
             docx.close();
             fis.close();
         } catch (Exception e) {
@@ -190,18 +227,24 @@ public class MaterialUtil {
 
 
             // 添加表中内容
-            List<String> materialContent = materialBean.getMaterialContent();
-            if (materialContent == null) {
+//            List<String> materialContent = materialBean.getMaterialContent();
+            Map<String, List<String>> materialContentMap = materialBean.getMaterialContent();
+            if (materialContentMap == null) {
                 return;
             }
-            for (int row = 0; row < materialContent.size(); row++) {
-                // 创建新行 数据从第二行开始
-                HSSFRow newRow = sheet.createRow( row + 1);
 
-                //数据从第一列开始 创建单元格并放入数据
-                newRow.createCell(0).setCellValue(materialBean.getDoc().getName());
-                newRow.createCell(1).setCellValue(materialBean.getMaterialName());
-                newRow.createCell(2).setCellValue(materialContent.get(row));
+            //数据从第一列开始 创建单元格并放入数据
+            int i = 1;
+            for (Map.Entry<String, List<String>> stringListEntry : materialContentMap.entrySet()) {
+                List<String> value = stringListEntry.getValue();
+                for (String v : value) {
+                    // 创建新行 数据从第二行开始
+                    HSSFRow newRow = sheet.createRow(i);
+                    newRow.createCell(0).setCellValue(materialBean.getDoc().getName());
+                    newRow.createCell(1).setCellValue(stringListEntry.getKey());
+                    newRow.createCell(2).setCellValue(v);
+                    i++;
+                }
             }
 
             // 判断是否存在目录. 不存在则创建
@@ -215,7 +258,6 @@ public class MaterialUtil {
             e.printStackTrace();
         }
     }
-
 
     /**
      * 判断文件夹是否存在，如果不存在则新建
