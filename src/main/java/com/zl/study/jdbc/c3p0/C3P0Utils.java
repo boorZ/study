@@ -38,6 +38,16 @@ public class C3P0Utils {
         con = cpds.getConnection();
         return con;
     }
+    public static Connection getconnection(String databaseName, String user, String password) throws SQLException, PropertyVetoException {
+        cpds = new ComboPooledDataSource();
+        cpds.setDriverClass("com.mysql.cj.jdbc.Driver");
+        cpds.setJdbcUrl("jdbc:mysql:///"+databaseName+"?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf-8");
+        cpds.setUser(user);
+        cpds.setPassword(password);
+        // 得到一个Connection
+        con = cpds.getConnection();
+        return con;
+    }
 
     public static ResultSet getConnection(String sql) throws SQLException, PropertyVetoException {
         con = getconnection();

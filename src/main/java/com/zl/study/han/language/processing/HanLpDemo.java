@@ -57,4 +57,9 @@ public class HanLpDemo {
         }
     }
 
+    @Test
+    public void test01() {
+        List<String> phraseList = HanLP.extractPhrase("农业税征收实物的作价、结算、付款办法的公告", 20);
+        System.out.println(phraseList);
+    }
 }
