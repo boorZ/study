@@ -12,6 +12,8 @@ import org.apache.commons.lang.StringUtils;
 import org.apache.http.HttpHost;
 import org.apache.lucene.search.TotalHits;
 import org.elasticsearch.action.bulk.BulkRequest;
+import org.elasticsearch.action.get.GetRequest;
+import org.elasticsearch.action.get.GetResponse;
 import org.elasticsearch.action.index.IndexRequest;
 import org.elasticsearch.action.search.SearchRequest;
 import org.elasticsearch.action.search.SearchResponse;
@@ -55,6 +57,18 @@ import java.util.stream.Collectors;
  * @date 2019/10/15
  */
 public class QueryBuildersUtils {
+
+    @Test
+    public void selectById () throws IOException {
+        RestHighLevelClient restHighLevelClient = getRestHighLevelClient();
+        GetRequest getRequest = new GetRequest();
+        getRequest.id("1776567711904604");
+        getRequest.index("sense_form");
+        GetResponse response= restHighLevelClient.get(getRequest, RequestOptions.DEFAULT);
+        Map<String, Object> source = response.getSource();
+        System.out.println();
+
+    }
 
     @Test
     public void test() {
@@ -409,6 +423,7 @@ public class QueryBuildersUtils {
         RestHighLevelClient restHighLevelClient = getRestHighLevelClient();
         try {
             SearchResponse search = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+
             List<DocSearchLabelTypeDTO> labelTypeList = new ArrayList<>();
             Terms labelTypeIdTerms = search.getAggregations().get("group_label_type_id");
             for (Terms.Bucket labelTypeIdBucket : labelTypeIdTerms.getBuckets()) {
@@ -423,27 +438,33 @@ public class QueryBuildersUtils {
                 }
                 labelTypeList.add(new DocSearchLabelTypeDTO(labelTypeId.longValue(), null, labelList));
             }
+            // labelTypeList
             System.out.println();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
 
+    @Test
+    public void getLabels () {
+        List<Object> labelIds = new ArrayList<>();
+        labelIds.add(159455291098796032L);
+        labelIds.add(158444311795470336L);
+        // DSL
+        TermsQueryBuilder termsQueryBuilder = QueryBuilders.termsQuery("labelId", labelIds);
+        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+        sourceBuilder.query(termsQueryBuilder);
 
-//            List<DocFullLabelDTO> docFullLabelList = new ArrayList<>();
-//            JSONObject jsonObject = JSONObject.parseObject(search.toString());
-//            JSONObject aggregations = jsonObject.getJSONObject("aggregations");
-//            JSONObject jsonObject1 = aggregations.getJSONObject("lterms#group_doc_id");
-//            JSONArray buckets = jsonObject1.getJSONArray("buckets");
-//            for (Object bucket : buckets) {
-//                JSONObject bucketJsonObject = JSONObject.parseObject(bucket.toString());
-//                JSONObject hits = bucketJsonObject.getJSONObject("top_hits#top_labelList").getJSONObject("hits");
-//                JSONArray hitsArray = hits.getJSONArray("hits");
-//                for (Object o : hitsArray) {
-//                    JSONObject endHitsJsonObject = JSONObject.parseObject(o.toString());
-//                    JSONObject source = endHitsJsonObject.getJSONObject("_source");
-//                    JSONArray labelList = source.getJSONArray("labelList");
-//                    List<DocFullLabelDTO> docFullLabelDTOS = labelList.toJavaList(DocFullLabelDTO.class);
-//                    docFullLabelList.addAll(docFullLabelDTOS);
-////                    System.out.println();
-//                }
-//            }
+        SearchRequest searchRequest = new SearchRequest("sense_label");
+        searchRequest.source(sourceBuilder);
+        RestHighLevelClient restHighLevelClient = getRestHighLevelClient();
+        try {
+            SearchResponse search = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);
+            SearchHit[] hits = search.getHits().getHits();
+            for (SearchHit hit : hits) {
+                Map<String, Object> sourceAsMap = hit.getSourceAsMap();
+
+            }
             System.out.println();
         } catch (IOException e) {
             e.printStackTrace();
