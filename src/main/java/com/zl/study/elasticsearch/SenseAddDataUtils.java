@@ -1,6 +1,8 @@
 package com.zl.study.elasticsearch;
 
+import com.alibaba.fastjson.JSONObject;
 import com.hankcs.hanlp.HanLP;
+import com.zl.study.elasticsearch.entity.DocFullSearchBaseDTO;
 import com.zl.study.jdbc.c3p0.C3P0Utils;
 import org.apache.http.HttpHost;
 import org.elasticsearch.action.bulk.BulkRequest;
@@ -14,7 +16,7 @@ import org.elasticsearch.common.xcontent.XContentType;
 import org.junit.Test;
 
 import java.beans.PropertyVetoException;
-import java.io.*;
+import java.io.IOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
@@ -36,21 +38,26 @@ public class SenseAddDataUtils {
     private static String SQL_NAME = "tax_sense_test_1_2";
     private static String SQL_USER = "root";
     private static String SQL_PASSWORD = "Root123456";
-    private static Integer PAGE_SIZE = 5000;
-//    private static String SUGGEST_MAPPING = "{\n" +
-//            "  \"mappings\": {\n" +
-//            "    \"properties\" : {\n" +
-//            "      \"docId\": {\"type\": \"long\"}, \n" +
-//            "      \"docName\":{\"type\": \"completion\"},\n" +
-//            "      \"docNameSuggest\" : {\n" +
-//            "        \"properties\": {\n" +
-//            "          \"weight\": {\"type\": \"long\"},\n" +
-//            "          \"contents\": {\"type\": \"completion\"}\n" +
-//            "        }\n" +
-//            "      }\n" +
-//            "    }\n" +
-//            "  }\n" +
-//            "}";
+    private static Integer PAGE_SIZE = 9000;
+    private static String SENSE_URL = "sense";
+    private static String SUGGEST_MAPPING = "{\n" +
+            "  \"mappings\": {\n" +
+            "    \"properties\" : {\n" +
+            "      \"docId\": {\"type\": \"long\"}, \n" +
+            "      \"docName\":{\"type\": \"completion\"},\n" +
+            "      \"docType\":{\"type\": \"long\"},\n" +
+            "      \"docNameSuggest\" : {\n" +
+            "        \"properties\": {\n" +
+            "          \"weight\": {\"type\": \"long\"},\n" +
+            "          \"contents\": {\"type\": \"completion\"}\n" +
+            "        }\n" +
+            "      }\n" +
+            "    }\n" +
+            "  }\n" +
+            "}";
+    @Test
+    public void zl () {
+    }
 //
 //    private static String FORM_MAPPING = "{\n" +
 //            "  \"mappings\": {\n" +
@@ -167,6 +174,15 @@ public class SenseAddDataUtils {
 //            }
 //        }
 //    }
+    /** 添加Mapping **/
+    @Test
+    public void addMapping() throws IOException {
+        CreateIndexRequest request = new CreateIndexRequest("sense_suggest");
+        request.source(SUGGEST_MAPPING, XContentType.JSON);
+        request.waitForActiveShards(ActiveShardCount.DEFAULT);
+        client.indices().create(request, RequestOptions.DEFAULT);
+    }
+
     /**
      * 添加标签数据
      */
@@ -200,86 +216,110 @@ public class SenseAddDataUtils {
         }
     }
     /**
-     * 添加sense（法律法规）及建议数据
+     * 添加sense（征管规范）及建议数据
      */
     @Test
-    public void addSenseFlfg() throws PropertyVetoException, SQLException {
-        String index = "sense_law";
-        Integer totalPage = getTotalPage("select count(*) from t_doc_law where is_enable = 'Y'");
+    public void addSenseNorm() throws PropertyVetoException, SQLException {
+        String index = "sense_norm";
+        Integer totalPage = getTotalPage("select count(*) from t_doc_business_norm where is_enable = 'Y';");
         for (Integer i = 0; i < totalPage; i++) {
-            String sql = "SELECT * FROM `t_doc_law` where is_enable = 'Y' limit " + (i * PAGE_SIZE) + "," + PAGE_SIZE + ";";
+            String sql = "SELECT * FROM `t_doc_business_norm` where is_enable = 'Y' limit " + (i * PAGE_SIZE) + "," + PAGE_SIZE + ";";
             ResultSet rs = C3P0Utils.getconnection(sql, SQL_NAME, SQL_USER, SQL_PASSWORD);
 
             BulkRequest bulkRequest = new BulkRequest();
             BulkRequest suggestBulkRequest = new BulkRequest();
+            BulkRequest senseBulkRequest = new BulkRequest();
 //            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             while (rs.next()) {
                 Map<String, Object> dataMap = new HashMap<>();
                 // Id
-                long docId = rs.getLong("doc_law_id");
+                long docId = rs.getLong("doc_business_norm_id");
                 dataMap.put("docId", docId);
                 // 名称
-                String docName = rs.getString("law_name");
+                String docName = rs.getString("norm_name");
                 dataMap.put("docName", docName);
-                // 状态
-                dataMap.put("effectiveStatus", rs.getInt("law_status"));
-                // 简介
-                dataMap.put("docInfo", rs.getString("law_info"));
-                // 发文单位
-                dataMap.put("dispatchUnit", rs.getString("dispatch_unit"));
-                // 发文时间
-//                dataMap.put("dispatchTime", format.format(rs.getDate("dispatch_time")));
-                dataMap.put("dispatchTime",rs.getDate("dispatch_time")+"");
-                // 生效时间
-//                String validTime = null;
-//                if (rs.getDate("valid_time") != null) {
-//                    validTime = format.format(rs.getDate("valid_time"));
-//                }
-//                dataMap.put("validTime", validTime);
-                dataMap.put("validTime", rs.getDate("valid_time")+"");
-                // 失效时间
-//                String invalidTime = null;
-//                if (rs.getDate("invalid_time") != null) {
-//                    invalidTime = format.format(rs.getDate("invalid_time"));
-//                }
-//                dataMap.put("invalidTime", invalidTime);
-                dataMap.put("invalidTime", rs.getDate("invalid_time")+"");
-                // 字号
-                dataMap.put("writNo", rs.getString("writ_no"));
-                // 字号类型
-                dataMap.put("writNoType", rs.getString("writ_no_type"));
-                // 全文内容Html
-                dataMap.put("fullHtml", rs.getString("full_html"));
+                // 编号
+                dataMap.put("serialNumber", rs.getString("norm_no"));
                 // 全文内容Text
                 dataMap.put("fullText", rs.getString("full_text"));
-                // 标注：编号、类型范围、项、注释内容、参见依据、时间、状态、内容
-//            dataMap.put("bz", rs.getString("full_text"));
-                // 附件：id、名称、内容、类型、路径
-//            List<Map<String, Object>> fjList = new ArrayList<>();
-//            ResultSet rs_fj = C3P0Utils.getconnection("SELECT * FROM `t_doc_law_attachment` where is_enable = 'Y';", SQL_NAME, SQL_USER, SQL_PASSWORD);
-//            while (rs_fj.next()) {
-//                Map<String, Object> fjMap = new HashMap<>();
-//                fjMap.put("id", rs.getLong("id"));
-//                fjMap.put("name", rs.getString("attachment_name"));
-//                fjMap.put("content", rs.getString("refer_content"));
-//                fjMap.put("type", rs.getInt("attachment_type"));
-//                fjMap.put("url", rs.getString("refer_path"));
-//                fjList.add(fjMap);
-//            }
-//            dataMap.put("fj", fjList);
-                // 目录：Id、名称、级别、关联Id
-//            dataMap.put("directory", rs.getString("full_text"));
+                // 章节 id、父级Id、名称、内容、级别、排序字段
+                List<Map<String, Object>> formImageList = new ArrayList<>();
+                ResultSet rs_image = C3P0Utils.getconnection("SELECT * FROM `t_doc_business_norm_sections` where doc_business_norm_id="+docId+";", SQL_NAME, SQL_USER, SQL_PASSWORD);
+                while (rs_image.next()) {
+                    Map<String, Object> formImageMap = new HashMap<>();
+                    formImageMap.put("id", rs_image.getLong("sections_id"));
+                    formImageMap.put("pId", rs_image.getLong("parent_sections_id"));
+                    String name = rs_image.getString("sections_name") == null ? "" : rs_image.getString("sections_name");
+                    formImageMap.put("name", name);
+                    String content = rs_image.getString("sections_info_html") == null ? "" : rs_image.getString("sections_info_html");
+                    content = content.replaceAll("style=\"[\\s\\S]*?\"", "");
+                    formImageMap.put("content", content);
+                    formImageMap.put("level", rs_image.getInt("sections_level"));
+                    formImageMap.put("orderBy", rs_image.getInt("orderby"));
+                    if (!content.equals("") && ! content.equalsIgnoreCase("<p class=\"MsoNormal\"><span lang=\"EN-US\">&nbsp;</span></p >")) {
+                        formImageList.add(formImageMap);
+                    }
+                }
+                rs_image.close();
+                C3P0Utils.closePs();
+                dataMap.put("normSections", formImageList);
+
+                Map map = pojoToMap(dataMap, "1");
+                senseBulkRequest.add(new IndexRequest(SENSE_URL).id(docId+"")
+                        .source(map));
+
                 bulkRequest.add(new IndexRequest(index).id(docId+"")
                         .source(dataMap));
 
-                addSenseSuggest(docId, docName, suggestBulkRequest);
+                addSenseSuggest(docId, docName, 1L, suggestBulkRequest);
             }
             rs.close();
             C3P0Utils.closePs();
             bulk(bulkRequest);
             bulk(suggestBulkRequest);
+            bulk(senseBulkRequest);
         }
     }
+    /**
+     * 添加sense（征管规范目录)
+     */
+    @Test
+    public void addSenseNormDirectory() throws PropertyVetoException, SQLException {
+        String index = "sense_norm_directory";
+        Integer totalPage = getTotalPage("select count(*) from t_business_norm_directory;");
+        for (Integer i = 0; i < totalPage; i++) {
+            String sql = "SELECT * FROM `t_business_norm_directory` limit " + (i * PAGE_SIZE) + "," + PAGE_SIZE + ";";
+            ResultSet rs = C3P0Utils.getconnection(sql, SQL_NAME, SQL_USER, SQL_PASSWORD);
+
+            BulkRequest bulkRequest = new BulkRequest();
+            while (rs.next()) {
+                Map<String, Object> dataMap = new HashMap<>();
+                // Id
+                long docId = rs.getLong("norm_directory_id");
+                dataMap.put("docId", docId);
+                // 名称
+                String docName = rs.getString("norm_name");
+                dataMap.put("docName", docName);
+                // 编号
+                dataMap.put("serialNumber", rs.getString("norm_no"));
+                // 番外类型代码
+                dataMap.put("code", rs.getString("norm_type_code"));
+                // 父Id
+                dataMap.put("pId", rs.getLong("p_norm_directory_id"));
+                // 版本
+                dataMap.put("version", rs.getString("version"));
+                // 排序字段
+                dataMap.put("orderBy", rs.getString("orderby"));
+
+                bulkRequest.add(new IndexRequest(index).id(docId+"")
+                        .source(dataMap));
+            }
+            rs.close();
+            C3P0Utils.closePs();
+            bulk(bulkRequest);
+        }
+    }
+
     /**
      * 添加sense（表证单书）及建议数据
      */
@@ -292,6 +332,7 @@ public class SenseAddDataUtils {
             ResultSet rs = C3P0Utils.getconnection(sql, SQL_NAME, SQL_USER, SQL_PASSWORD);
             BulkRequest bulkRequest = new BulkRequest();
             BulkRequest suggestBulkRequest = new BulkRequest();
+            BulkRequest senseBulkRequest = new BulkRequest();
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             while (rs.next()) {
                 // 分类索引：业务部门、业务类别、表单类型、设置依据
@@ -359,13 +400,169 @@ public class SenseAddDataUtils {
                 bulkRequest.add(new IndexRequest(index).id(docId+"")
                         .source(dataMap));
 
-                addSenseSuggest(docId, serialNumber + name + attachName, suggestBulkRequest);
+                Map mapasd = pojoToMap(dataMap, "2");
+                senseBulkRequest.add(new IndexRequest(SENSE_URL).id(docId+"")
+                        .source(mapasd));
+
+                addSenseSuggest(docId, serialNumber + name + attachName,2L, suggestBulkRequest);
             }
             rs.close();
             C3P0Utils.closePs();
+            bulk(senseBulkRequest);
             bulk(bulkRequest);
             bulk(suggestBulkRequest);
         }
+    }
+
+    /**
+     * 添加sense（法律法规）及建议数据
+     */
+    @Test
+    public void addSenseFlfg() throws PropertyVetoException, SQLException {
+        PAGE_SIZE = 1000;
+        String index = "sense_test";
+        Integer totalPage = getTotalPage("select count(*) from t_doc_law where is_enable = 'Y'");
+        for (Integer i = 0; i < totalPage; i++) {
+            String sql = "SELECT * FROM `t_doc_law` where is_enable = 'Y' limit " + (i * PAGE_SIZE) + "," + PAGE_SIZE + ";";
+            ResultSet rs = C3P0Utils.getconnection(sql, SQL_NAME, SQL_USER, SQL_PASSWORD);
+
+            BulkRequest bulkRequest = new BulkRequest();
+            BulkRequest senseBulkRequest = new BulkRequest();
+            BulkRequest suggestBulkRequest = new BulkRequest();
+//            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            while (rs.next()) {
+                Map<String, Object> dataMap = new HashMap<>();
+                // Id
+                long docId = rs.getLong("doc_law_id");
+                dataMap.put("docId", docId);
+                // 名称
+                String docName = rs.getString("law_name");
+                dataMap.put("docName", docName);
+                // 状态
+                dataMap.put("effectiveStatus", rs.getInt("law_status"));
+                // 简介
+                dataMap.put("docInfo", rs.getString("law_info"));
+                // 发文单位
+                dataMap.put("dispatchUnit", rs.getString("dispatch_unit"));
+                // 发文时间
+//                dataMap.put("dispatchTime", format.format(rs.getDate("dispatch_time")));
+                dataMap.put("dispatchTime",rs.getDate("dispatch_time")+"");
+                // 生效时间
+//                String validTime = null;
+//                if (rs.getDate("valid_time") != null) {
+//                    validTime = format.format(rs.getDate("valid_time"));
+//                }
+//                dataMap.put("validTime", validTime);
+                dataMap.put("validTime", rs.getDate("valid_time")+"");
+                // 失效时间
+//                String invalidTime = null;
+//                if (rs.getDate("invalid_time") != null) {
+//                    invalidTime = format.format(rs.getDate("invalid_time"));
+//                }
+//                dataMap.put("invalidTime", invalidTime);
+                dataMap.put("invalidTime", rs.getDate("invalid_time")+"");
+                // 字号
+                dataMap.put("writNo", rs.getString("writ_no"));
+                // 字号类型
+                dataMap.put("writNoType", rs.getString("writ_no_type"));
+                // 全文内容Html
+                dataMap.put("fullHtml", rs.getString("full_html"));
+                // 全文内容Text
+                dataMap.put("fullText", rs.getString("full_text"));
+                // 标注：编号、类型范围、项、注释内容、参见依据、时间、状态、内容
+//            dataMap.put("bz", rs.getString("full_text"));
+                // 附件：id、名称、内容、类型、路径
+//            List<Map<String, Object>> fjList = new ArrayList<>();
+//            ResultSet rs_fj = C3P0Utils.getconnection("SELECT * FROM `t_doc_law_attachment` where is_enable = 'Y';", SQL_NAME, SQL_USER, SQL_PASSWORD);
+//            while (rs_fj.next()) {
+//                Map<String, Object> fjMap = new HashMap<>();
+//                fjMap.put("id", rs.getLong("id"));
+//                fjMap.put("name", rs.getString("attachment_name"));
+//                fjMap.put("content", rs.getString("refer_content"));
+//                fjMap.put("type", rs.getInt("attachment_type"));
+//                fjMap.put("url", rs.getString("refer_path"));
+//                fjList.add(fjMap);
+//            }
+//            dataMap.put("fj", fjList);
+                // 目录：Id、名称、级别、关联Id
+//            dataMap.put("directory", rs.getString("full_text"));
+
+//                Map map = pojoToMap(dataMap, "3");
+//                senseBulkRequest.add(new IndexRequest(SENSE_URL).id(docId+"").source(map));
+
+                bulkRequest.add(new IndexRequest(index).id(docId+"")
+                        .source(dataMap));
+
+//                addSenseSuggest(docId, docName, 3L, suggestBulkRequest);
+            }
+            rs.close();
+            C3P0Utils.closePs();
+//            bulk(senseBulkRequest);
+            bulk(bulkRequest);
+            System.out.println();
+//            bulk(suggestBulkRequest);
+        }
+    }
+
+    /**
+     * 添加sense（政策解读）及建议数据
+     */
+    @Test
+    public void addSensePolicy() throws PropertyVetoException, SQLException {
+        String index = "sense_policy";
+        Integer totalPage = getTotalPage("select count(*) from t_doc_policy where is_enable = 'Y'");
+        for (Integer i = 0; i < totalPage; i++) {
+            String sql = "SELECT * FROM `t_doc_policy` where is_enable = 'Y' limit " + (i * PAGE_SIZE) + "," + PAGE_SIZE + ";";
+            ResultSet rs = C3P0Utils.getconnection(sql, SQL_NAME, SQL_USER, SQL_PASSWORD);
+
+            BulkRequest bulkRequest = new BulkRequest();
+            BulkRequest senseBulkRequest = new BulkRequest();
+            BulkRequest suggestBulkRequest = new BulkRequest();
+//            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            while (rs.next()) {
+                Map<String, Object> dataMap = new HashMap<>();
+                // Id
+                long docId = rs.getLong("doc_policy_id");
+                dataMap.put("docId", docId);
+                // 名称
+                String docName = rs.getString("policy_name");
+                dataMap.put("docName", docName);
+                // 来源
+                dataMap.put("source", rs.getString("origin"));
+                // 发文时间
+                dataMap.put("dispatchTime",rs.getDate("release_date")+"");
+                // 是否官方解读
+                dataMap.put("isOfficial", rs.getString("is_official"));
+                // 全文内容Html
+                dataMap.put("fullHtml", rs.getString("full_html"));
+                // 全文内容Text
+                dataMap.put("fullText", rs.getString("full_text"));
+
+                Map map = pojoToMap(dataMap, "4");
+                senseBulkRequest.add(new IndexRequest(SENSE_URL).id(docId+"")
+                        .source(map));
+
+                bulkRequest.add(new IndexRequest(index).id(docId+"")
+                        .source(dataMap));
+
+                addSenseSuggest(docId, docName, 4L, suggestBulkRequest);
+            }
+            rs.close();
+            C3P0Utils.closePs();
+            bulk(senseBulkRequest);
+            bulk(bulkRequest);
+            bulk(suggestBulkRequest);
+        }
+    }
+
+    private Map pojoToMap (Map<String, Object> dataMap, String type) {
+        JSONObject jsonObject = new JSONObject(dataMap);
+        DocFullSearchBaseDTO sense = jsonObject.toJavaObject(DocFullSearchBaseDTO.class);
+        sense.setDocType(type);
+
+        Object o = JSONObject.toJSON(sense);
+        Map map = (Map) JSONObject.parse(o.toString());
+        return map;
     }
 
     private Integer getTotalPage(String sql) throws SQLException, PropertyVetoException {
@@ -380,7 +577,7 @@ public class SenseAddDataUtils {
     }
 
     /** 添加建议数据 **/
-    private void addSenseSuggest(Long id, String name, BulkRequest bulkRequest) {
+    private void addSenseSuggest(Long id, String name, Long docType, BulkRequest bulkRequest) {
         String index = "sense_suggest";
         // 拆分名称——正则
         List<String> docNameSuggestList = splitDocName(name);
@@ -392,15 +589,7 @@ public class SenseAddDataUtils {
         docNameSuggest.put("weight", 0);
         docNameSuggest.put("contents", docNameSuggestList);
         bulkRequest.add(new IndexRequest(index).id(id+"")
-                .source(XContentType.JSON,"docId", id, "docName", name, "docNameSuggest", docNameSuggest));
-    }
-
-    /** 添加Mapping **/
-    public static void addMapping(String mappingDSL, String index) throws IOException {
-        CreateIndexRequest request = new CreateIndexRequest(index);
-        request.source(mappingDSL, XContentType.JSON);
-        request.waitForActiveShards(ActiveShardCount.DEFAULT);
-        client.indices().create(request, RequestOptions.DEFAULT);
+                .source(XContentType.JSON,"docId", id, "docName", name, "docType", docType, "docNameSuggest", docNameSuggest));
     }
 
     /** 执行 **/
