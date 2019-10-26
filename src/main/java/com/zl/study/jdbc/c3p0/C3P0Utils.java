@@ -4,10 +4,7 @@ import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.zl.study.jdbc.BeanConfig;
 
 import java.beans.PropertyVetoException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 
 /**
  * 描 述: 请描述功能
@@ -21,6 +18,7 @@ public class C3P0Utils {
     private static Connection con;
     private static Statement sta;
     private static ResultSet rs;
+    private static PreparedStatement ps;
 
     /**
      * 获取Connection
@@ -38,6 +36,31 @@ public class C3P0Utils {
         con = cpds.getConnection();
         return con;
     }
+    public static Connection getconnection(String databaseName, String user, String password) throws SQLException, PropertyVetoException {
+        cpds = new ComboPooledDataSource();
+        cpds.setDriverClass("com.mysql.cj.jdbc.Driver");
+        cpds.setJdbcUrl("jdbc:mysql:///"+databaseName+"?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf-8");
+        cpds.setUser(user);
+        cpds.setPassword(password);
+        // 得到一个Connection
+        con = cpds.getConnection();
+        return con;
+    }
+
+    public static ResultSet getconnection(String sql, String databaseName, String user, String password) throws SQLException, PropertyVetoException {
+        cpds = new ComboPooledDataSource();
+        cpds.setDriverClass("com.mysql.cj.jdbc.Driver");
+        cpds.setJdbcUrl("jdbc:mysql:///"+databaseName+"?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf-8");
+        cpds.setUser(user);
+        cpds.setPassword(password);
+        // 最多有多少个连接
+//        cpds.setMaxPoolSize(10);
+//        cpds.setInitialPoolSize(5);
+        // 得到一个Connection
+        con = cpds.getConnection();
+        ps = con.prepareStatement(sql);
+        return ps.executeQuery();
+    }
 
     public static ResultSet getConnection(String sql) throws SQLException, PropertyVetoException {
         con = getconnection();
@@ -48,6 +71,11 @@ public class C3P0Utils {
     public static void close() throws SQLException {
         rs.close();
         sta.close();
+        con.close();
+        cpds.close();
+    }
+    public static void closePs() throws SQLException {
+        ps.close();
         con.close();
         cpds.close();
     }
