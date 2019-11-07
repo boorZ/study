@@ -2,13 +2,14 @@ package com.zl.study.elasticsearch;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import common.exception.DiebuIllegalArgumentException;
 import org.apache.http.HttpHost;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.util.EntityUtils;
-import org.elasticsearch.client.Request;
-import org.elasticsearch.client.Response;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestClientBuilder;
+import org.elasticsearch.action.search.SearchRequest;
+import org.elasticsearch.action.search.SearchResponse;
+import org.elasticsearch.client.*;
+import org.elasticsearch.search.builder.SearchSourceBuilder;
 import org.springframework.util.Assert;
 
 import java.io.IOException;
@@ -31,6 +32,11 @@ public class ElasticsearchUtlis {
         return getClientBuilder().build();
     }
 
+    // create zhoulin 2019/10/17
+    public static RestHighLevelClient getRestHighLevelClient () {
+        return new RestHighLevelClient(getClientBuilder());
+    }
+
     /**
      * 将ES返回值以Json字符串格式返回
      * @param request 请求
@@ -48,6 +54,28 @@ public class ElasticsearchUtlis {
             e.printStackTrace();
         }
         return jsonString;
+    }
+
+    public static SearchResponse getSearchResponse (String indice, SearchSourceBuilder dsl) {
+        // 获取高级客户端
+        RestHighLevelClient client = getRestHighLevelClient();
+        try {
+            // 编写DSL语句
+            SearchRequest searchRequest = new SearchRequest(indice);
+            // 获取DSL
+            searchRequest.source(dsl);
+            // 执行DSL
+            return client.search(searchRequest, RequestOptions.DEFAULT);
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            try {
+                client.close();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+        throw new DiebuIllegalArgumentException("执行失败");
     }
 
     /**

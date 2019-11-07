@@ -29,30 +29,21 @@ public class C3P0Utils {
     public static Connection getconnection() throws SQLException, PropertyVetoException {
         cpds = new ComboPooledDataSource();
         cpds.setDriverClass("com.mysql.cj.jdbc.Driver");
-        cpds.setJdbcUrl("jdbc:mysql:///"+BeanConfig.JPA_DATABASE+"?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf-8");
+        cpds.setJdbcUrl("jdbc:mysql:///"+ BeanConfig.JPA_DATABASE+"?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf-8");
         cpds.setUser(BeanConfig.JPA_USER);
         cpds.setPassword(BeanConfig.JPA_PASSWORD);
         // 得到一个Connection
         con = cpds.getConnection();
         return con;
     }
-    public static Connection getconnection(String databaseName, String user, String password) throws SQLException, PropertyVetoException {
-        cpds = new ComboPooledDataSource();
-        cpds.setDriverClass("com.mysql.cj.jdbc.Driver");
-        cpds.setJdbcUrl("jdbc:mysql:///"+databaseName+"?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf-8");
-        cpds.setUser(user);
-        cpds.setPassword(password);
-        // 得到一个Connection
-        con = cpds.getConnection();
-        return con;
-    }
 
-    public static ResultSet getconnection(String sql, String databaseName, String user, String password) throws SQLException, PropertyVetoException {
+    public static ResultSet getconnection(String sql) throws SQLException, PropertyVetoException {
         cpds = new ComboPooledDataSource();
         cpds.setDriverClass("com.mysql.cj.jdbc.Driver");
-        cpds.setJdbcUrl("jdbc:mysql:///"+databaseName+"?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf-8");
-        cpds.setUser(user);
-        cpds.setPassword(password);
+        cpds.setJdbcUrl("jdbc:mysql://"+BeanConfig.JPA_IP+"/"+BeanConfig.JPA_DATABASE+
+                "?serverTimezone=GMT%2B8&useUnicode=true&characterEncoding=utf-8");
+        cpds.setUser(BeanConfig.JPA_USER);
+        cpds.setPassword(BeanConfig.JPA_PASSWORD);
         // 最多有多少个连接
 //        cpds.setMaxPoolSize(10);
 //        cpds.setInitialPoolSize(5);
@@ -69,18 +60,18 @@ public class C3P0Utils {
         return rs;
     }
     public static void close() throws SQLException {
-        rs.close();
-        sta.close();
-        con.close();
-        cpds.close();
+        if (rs != null) rs.close();
+        if (sta != null) sta.close();
+        if (con != null) con.close();
+        if (cpds != null) cpds.close();
     }
     public static void closePs() throws SQLException {
-        ps.close();
-        con.close();
-        cpds.close();
+        if (ps != null) ps.close();
+        if (con != null) con.close();
+        if (cpds != null) cpds.close();
     }
     public static void closeSimp() throws SQLException {
-        con.close();
-        cpds.close();
+        if (con != null) con.close();
+        if (cpds != null) cpds.close();
     }
 }

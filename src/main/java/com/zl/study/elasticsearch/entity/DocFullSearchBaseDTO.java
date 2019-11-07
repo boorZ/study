@@ -34,6 +34,15 @@ public class DocFullSearchBaseDTO implements Serializable {
     private String source;
     /** 分类索引 */
     private List<Map<String, String>> classificationIndex;
+    private Map<String, Object> docNameSuggest;
+
+    public Map<String, Object> getDocNameSuggest() {
+        return docNameSuggest;
+    }
+
+    public void setDocNameSuggest(Map<String, Object> docNameSuggest) {
+        this.docNameSuggest = docNameSuggest;
+    }
 
     public String getSerialNumber() {
         return serialNumber;
