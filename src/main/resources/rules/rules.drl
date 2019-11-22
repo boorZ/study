@@ -1,0 +1,19 @@
+package rules
+
+import com.zl.study.drools.model.Product
+/*规则名字*/
+rule "Offer for Diamond"
+	when
+	/*规则条件，里面出来的结果只能是ture或者false*/
+		productObject: Product(type=="diamond")
+	then
+		productObject.setDiscount(15);
+	end
+rule "Offer for Gold"
+	when
+	/*对productObject进行参数绑定，当条件满足时*/
+		productObject: Product(type=="gold")
+	then
+	/*对productObject进行操作*/
+		productObject.setDiscount(25);
+	end

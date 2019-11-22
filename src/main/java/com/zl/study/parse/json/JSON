@@ -1,0 +1,9 @@
++- data/ <-- 数据文件夹
+|  |
+|  +- idiom.json <-- 成语
+|  |
+|  +- word.json <-- 汉字
+|  |
+|  +- xiehouyu.json <-- 歇后语
+|  |
+|  +- ci.json <-- 词语

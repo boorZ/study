@@ -23,7 +23,7 @@ public abstract class Assert {
 	 * @param message the exception message to use if the assertion fails
 	 * @throws DiebuIllegalArgumentException if expression is <code>false</code>
 	 */
-	private static void isTrue(boolean expression, String message) {
+	public static void isTrue(boolean expression, String message) {
 		if (!expression) {
 			throw new DiebuIllegalArgumentException(message);
 		}
@@ -36,7 +36,7 @@ public abstract class Assert {
 	 * @param expression a boolean expression
 	 * @throws DiebuIllegalArgumentException if expression is <code>false</code>
 	 */
-	private static void isTrue(boolean expression) {
+	public static void isTrue(boolean expression) {
 		isTrue(expression, "[Assertion failed] - this expression must be true");
 	}
 
@@ -47,7 +47,7 @@ public abstract class Assert {
 	 * @param message the exception message to use if the assertion fails
 	 * @throws DiebuIllegalArgumentException if the object is not <code>null</code>
 	 */
-	private static void isNull(Object object, String message) {
+	public static void isNull(Object object, String message) {
 		if (object != null) {
 			throw new DiebuIllegalArgumentException(message);
 		}
@@ -59,7 +59,7 @@ public abstract class Assert {
 	 * @param object the object to check
 	 * @throws DiebuIllegalArgumentException if the object is not <code>null</code>
 	 */
-	private static void isNull(Object object) {
+	public static void isNull(Object object) {
 		isNull(object, "[Assertion failed] - the object argument must be null");
 	}
 
@@ -70,7 +70,7 @@ public abstract class Assert {
 	 * @param message the exception message to use if the assertion fails
 	 * @throws DiebuIllegalArgumentException if the object is <code>null</code>
 	 */
-	private static void notNull(Object object, String message) {
+	public static void notNull(Object object, String message) {
 		if (object == null) {
 			throw new DiebuIllegalArgumentException(message);
 		}
@@ -82,7 +82,7 @@ public abstract class Assert {
 	 * @param object the object to check
 	 * @throws DiebuIllegalArgumentException if the object is <code>null</code>
 	 */
-	private static void notNull(Object object) {
+	public static void notNull(Object object) {
 		notNull(object, "[Assertion failed] - this argument is required; it must not be null");
 	}
 
@@ -94,7 +94,7 @@ public abstract class Assert {
 	 * @param message the exception message to use if the assertion fails
 	 * @see StringUtils#isNotEmpty
 	 */
-	private static void isNotEmpty(String text, String message) {
+	public static void isNotEmpty(String text, String message) {
 		if (!StringUtils.isNotEmpty(text)) {
 			throw new DiebuIllegalArgumentException(message);
 		}
@@ -107,7 +107,7 @@ public abstract class Assert {
 	 * @param text the String to check
 	 * @see StringUtils#isNotEmpty
 	 */
-	private static void isNotEmpty(String text) {
+	public static void isNotEmpty(String text) {
 		isNotEmpty(text,
 				"[Assertion failed] - this String argument must have length; it must not be null or empty");
 	}
@@ -120,7 +120,7 @@ public abstract class Assert {
 	 * @param message the exception message to use if the assertion fails
 	 * @see StringUtils#isNotBlank
 	 */
-	private static void isNotBlank(String text, String message) {
+	public static void isNotBlank(String text, String message) {
 		if (!StringUtils.isNotBlank(text)) {
 			throw new DiebuIllegalArgumentException(message);
 		}
@@ -133,7 +133,7 @@ public abstract class Assert {
 	 * @param text the String to check
 	 * @see StringUtils#hasText
 	 */
-	private static void isNotBlank(String text) {
+	public static void isNotBlank(String text) {
 		isNotBlank(text,
 				"[Assertion failed] - this String argument must have text; it must not be null, empty, or blank");
 	}
@@ -145,7 +145,7 @@ public abstract class Assert {
 	 * @param substring the substring to find within the text
 	 * @param message the exception message to use if the assertion fails
 	 */
-	private static void doesNotContain(String textToSearch, String substring, String message) {
+	public static void doesNotContain(String textToSearch, String substring, String message) {
 		if (StringUtils.isNotEmpty(textToSearch) && StringUtils.isNotEmpty(substring) &&
 				textToSearch.indexOf(substring) != -1) {
 			throw new DiebuIllegalArgumentException(message);
@@ -158,7 +158,7 @@ public abstract class Assert {
 	 * @param textToSearch the text to search
 	 * @param substring the substring to find within the text
 	 */
-	private static void doesNotContain(String textToSearch, String substring) {
+	public static void doesNotContain(String textToSearch, String substring) {
 		doesNotContain(textToSearch, substring,
 				"[Assertion failed] - this String argument must not contain the substring [" + substring + "]");
 	}
@@ -172,7 +172,7 @@ public abstract class Assert {
 	 * @param message the exception message to use if the assertion fails
 	 * @throws DiebuIllegalArgumentException if the object array is <code>null</code> or has no elements
 	 */
-	private static void notEmpty(Object[] array, String message) {
+	public static void notEmpty(Object[] array, String message) {
 		if (array == null || array.length == 0) {
 			throw new DiebuIllegalArgumentException(message);
 		}
@@ -185,7 +185,7 @@ public abstract class Assert {
 	 * @param array the array to check
 	 * @throws DiebuIllegalArgumentException if the object array is <code>null</code> or has no elements
 	 */
-	private static void notEmpty(Object[] array) {
+	public static void notEmpty(Object[] array) {
 		notEmpty(array, "[Assertion failed] - this array must not be empty: it must contain at least 1 element");
 	}
 
@@ -197,7 +197,7 @@ public abstract class Assert {
 	 * @param message the exception message to use if the assertion fails
 	 * @throws DiebuIllegalArgumentException if the object array contains a <code>null</code> element
 	 */
-	private static void noNullElements(Object[] array, String message) {
+	public static void noNullElements(Object[] array, String message) {
 		if (array != null) {
 			for (int i = 0; i < array.length; i++) {
 				if (array[i] == null) {
@@ -214,7 +214,7 @@ public abstract class Assert {
 	 * @param array the array to check
 	 * @throws DiebuIllegalArgumentException if the object array contains a <code>null</code> element
 	 */
-	private static void noNullElements(Object[] array) {
+	public static void noNullElements(Object[] array) {
 		noNullElements(array, "[Assertion failed] - this array must not contain any null elements");
 	}
 
@@ -226,7 +226,7 @@ public abstract class Assert {
 	 * @param message the exception message to use if the assertion fails
 	 * @throws IllegalArgumentException if the collection is <code>null</code> or has no elements
 	 */
-	private static void notEmpty(Collection collection, String message) {
+	public static void notEmpty(Collection collection, String message) {
 		if (collection == null || collection.isEmpty()) {
 			throw new DiebuIllegalArgumentException(message);
 		}
@@ -239,7 +239,7 @@ public abstract class Assert {
 	 * @param collection the collection to check
 	 * @throws DiebuIllegalArgumentException if the collection is <code>null</code> or has no elements
 	 */
-	private static void notEmpty(Collection collection) {
+	public static void notEmpty(Collection collection) {
 		notEmpty(collection,
 				"[Assertion failed] - this collection must not be empty: it must contain at least 1 element");
 	}
@@ -252,7 +252,7 @@ public abstract class Assert {
 	 * @param message the exception message to use if the assertion fails
 	 * @throws DiebuIllegalArgumentException if the map is <code>null</code> or has no entries
 	 */
-	private static void notEmpty(Map map, String message) {
+	public static void notEmpty(Map map, String message) {
 		if (map == null || map.isEmpty()) {
 			throw new DiebuIllegalArgumentException(message);
 		}
@@ -265,7 +265,7 @@ public abstract class Assert {
 	 * @param map the map to check
 	 * @throws DiebuIllegalArgumentException if the map is <code>null</code> or has no entries
 	 */
-	private static void notEmpty(Map map) {
+	public static void notEmpty(Map map) {
 		notEmpty(map, "[Assertion failed] - this map must not be empty; it must contain at least one entry");
 	}
 
@@ -278,7 +278,7 @@ public abstract class Assert {
 	 * @throws DiebuIllegalArgumentException if the object is not an instance of clazz
 	 * @see Class#isInstance
 	 */
-	private static void isInstanceOf(Class clazz, Object obj) {
+	public static void isInstanceOf(Class clazz, Object obj) {
 		isInstanceOf(clazz, obj, "");
 	}
 
@@ -294,7 +294,7 @@ public abstract class Assert {
 	 * @throws DiebuIllegalArgumentException if the object is not an instance of clazz
 	 * @see Class#isInstance
 	 */
-	private static void isInstanceOf(Class type, Object obj, String message) {
+	public static void isInstanceOf(Class type, Object obj, String message) {
 		notNull(type, "Type to check against must not be null");
 		if (!type.isInstance(obj)) {
 			throw new DiebuIllegalArgumentException(message +
@@ -310,7 +310,7 @@ public abstract class Assert {
 	 * @param subType the sub type to check
 	 * @throws DiebuIllegalArgumentException if the classes are not assignable
 	 */
-	private static void isAssignable(Class superType, Class subType) {
+	public static void isAssignable(Class superType, Class subType) {
 		isAssignable(superType, subType, "");
 	}
 
@@ -325,7 +325,7 @@ public abstract class Assert {
 	 * ok when prepended to it.
 	 * @throws DiebuIllegalArgumentException if the classes are not assignable
 	 */
-	private static void isAssignable(Class superType, Class subType, String message) {
+	public static void isAssignable(Class superType, Class subType, String message) {
 		notNull(superType, "Type to check against must not be null");
 		if (subType == null || !superType.isAssignableFrom(subType)) {
 			throw new DiebuIllegalArgumentException(message + subType + " is not assignable to " + superType);
@@ -342,7 +342,7 @@ public abstract class Assert {
 	 * @param message the exception message to use if the assertion fails
 	 * @throws DiebuIllegalArgumentException if expression is <code>false</code>
 	 */
-	private static void state(boolean expression, String message) {
+	public static void state(boolean expression, String message) {
 		if (!expression) {
 			throw new DiebuIllegalArgumentException(message);
 		}
@@ -357,7 +357,7 @@ public abstract class Assert {
 	 * @param expression a boolean expression
 	 * @throws DiebuIllegalArgumentException if the supplied expression is <code>false</code>
 	 */
-	private static void state(boolean expression) {
+	public static void state(boolean expression) {
 		state(expression, "[Assertion failed] - this state invariant must be true");
 	}
 
