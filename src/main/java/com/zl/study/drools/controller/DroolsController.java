@@ -1,7 +1,8 @@
 package com.zl.study.drools.controller;
 
-import com.zl.study.drools.model.Product;
-import com.zl.study.drools.service.JewelleryShopService;
+import com.zl.study.drools.model.SearchRule;
+import org.kie.api.runtime.KieContainer;
+import org.kie.api.runtime.KieSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
@@ -15,22 +16,26 @@ import org.springframework.web.bind.annotation.RestController;
  * @date 2019/11/22 16:35
  */
 @RestController
-public class JewelleryShopController {
-    private final JewelleryShopService jewelleryShopService;
+public class DroolsController {
+    private final KieContainer kieContainer;
 
     @Autowired
-    public JewelleryShopController(JewelleryShopService jewelleryShopService) {
-        this.jewelleryShopService = jewelleryShopService;
+    public DroolsController(KieContainer kieContainer) {
+        this.kieContainer = kieContainer;
     }
+
     /*暴露出来的api接口，通过捕获type=进行后续规则*/
     @RequestMapping(value = "/getDiscount", method = RequestMethod.GET, produces = "application/json")
-    public Product getQuestions(@RequestParam(required = true) String type) {
+    public SearchRule getQuestions(@RequestParam String searchValue) {
 
-        Product product = new Product();
-        product.setType(type);
+        SearchRule searchRule = new SearchRule();
+        searchRule.setSearchValue(searchValue);
 
-        jewelleryShopService.getProductDiscount(product);
+        KieSession kieSession = kieContainer.newKieSession("rulesSession");
+        kieSession.insert(searchRule);
+        kieSession.fireAllRules();
+        kieSession.dispose();
 
-        return product;
+        return searchRule;
     }
 }

@@ -1,19 +1,28 @@
 package rules
 
-import com.zl.study.drools.model.Product
+import com.zl.study.drools.model.SearchRule;
+import com.zl.study.drools.enums.SearchEnum
+import java.util.ArrayList
+import java.util.List;
 /*规则名字*/
-rule "Offer for Diamond"
+rule "law"
 	when
 	/*规则条件，里面出来的结果只能是ture或者false*/
-		productObject: Product(type=="diamond")
+		productObject: SearchRule(searchValue matches ".*关于.+的公告\\(通知\\)"
+		|| searchValue matches ".*法" || searchValue matches ".*暂行条例"
+		|| searchValue matches ".*实施细则")
 	then
-		productObject.setDiscount(15);
+		productObject.setDocType(3);
 	end
-rule "Offer for Gold"
+rule "law_writ_no"
 	when
 	/*对productObject进行参数绑定，当条件满足时*/
-		productObject: Product(type=="gold")
+		productObject: SearchRule(searchValue matches ".[〔〕].*" || searchValue matches ".*\\d "
+		|| searchValue matches ".*\\d号" || searchValue matches ".*[号令函].*")
 	then
 	/*对productObject进行操作*/
-		productObject.setDiscount(25);
+	    List<SearchEnum> list = new ArrayList<>();
+	    list.add(SearchEnum.WRIT_NO);
+	    productObject.setSearchEnumList(list);
+		productObject.setDocType(3);
 	end
