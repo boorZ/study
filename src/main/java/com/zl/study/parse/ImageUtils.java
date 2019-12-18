@@ -26,19 +26,33 @@ public class ImageUtils {
         }
     }
 
-    public void trimFourSidesBlank(File targetFile, String imageType, Integer addToopHeight, Integer addBottonmHeight) {
+    public void trimFourSidesBlank(File targetFile, String imageType, Integer addTopHeight, Integer addBottomHeight,
+                                   Integer addLeftWidth, Integer addHeightWidth) {
         int width = img.getWidth();
         int height = img.getHeight();
-        Integer bottomHeight = getTrimBottomBlankHeight(img);
-        Integer topHeight = getTrimTopBlankHeight(img);
-        Integer leftWidth = getTrimLeftBlankHeight(img);
-        int newHight = height - bottomHeight + addBottonmHeight + addToopHeight;
-        int newWidth = width - leftWidth;
-        topHeight -= addToopHeight;
+        // 底部最低空白高度
+//        Integer bottomHeight = getTrimBottomBlankHeight(img);
+        Integer bottomHeight = 0;
+        // 顶部最低空白高度
+//        Integer topHeight = getTrimTopBlankHeight(img);
+        Integer topHeight = 0;
+        // 左部最低空白高度
+//        Integer leftWidth = getTrimLeftBlankWidth(img);
+        Integer leftWidth = 0;
+        // 右部最低空白高度
+//        Integer rightWidth = getTrimRightBlankWidth(img);
+        Integer rightWidth = 0;
 
-        BufferedImage newImg = new BufferedImage(newWidth, newHight, BufferedImage.TYPE_INT_RGB);
+        int newHeight = height - bottomHeight - topHeight + addBottomHeight + addTopHeight;
+        int newWidth = width - leftWidth - rightWidth + addLeftWidth + addHeightWidth;
+        Integer x = leftWidth - addLeftWidth;
+        Integer y = topHeight - addTopHeight;
+        if (x < 0) x = -x;
+        if (y < 0) y = -y;
+
+        BufferedImage newImg = new BufferedImage(newWidth, newHeight, BufferedImage.TYPE_INT_RGB);
         Graphics g = newImg.createGraphics();
-        g.drawImage(img, 0, -topHeight, null);
+        g.drawImage(img, -x, -y, null);
         img = newImg;
         try {
             ImageIO.write(img, imageType, targetFile);
@@ -47,29 +61,31 @@ public class ImageUtils {
         }
     }
 
-//    public static void trimCommonBlank(File sourceFile, File targetFile, String imageType,
-//                                       Integer addTopHeight, Integer addBottonmHeight) {
-//        BufferedImage img = null;
-//        try {
-//            img = ImageIO.read(sourceFile);
-//        } catch (IOException e) {
-//            System.out.println("读取图片失败");
-//        }
-//        int width = img.getWidth();
-//        int height = img.getHeight();
-//        Integer bottomHeight = getTrimBottomBlankHeight(img);
-//        Integer y = getTrimTopBlankHeight(img) + addTopHeight;
-//        int newHight = height - bottomHeight - y + addBottonmHeight;
-//        BufferedImage newImg = new BufferedImage(width, newHight, BufferedImage.TYPE_INT_RGB);
-//        Graphics g = newImg.createGraphics();
-//        g.drawImage(img, 0, -y, null);
-//        img = newImg;
-//        try {
-//            ImageIO.write(img, imageType, targetFile);
-//        } catch (IOException e) {
-//            System.out.println("保存图片失败");
-//        }
-//    }
+    /**
+     * 获取右空白最低高宽度
+     *
+     * @param img 图片
+     * @return
+     */
+    private Integer getTrimRightBlankWidth(BufferedImage img) {
+        int width = img.getWidth();
+        int height = img.getHeight();
+        List<Integer> trimRightWidthList = new ArrayList<>();
+
+//        for (int i = width-1; i >= 0; i--) {
+        for (int i = 0; i < width; i++) {
+            for (int j = 0; j < height; j++) {
+                if (img.getRGB(i, j) != Color.WHITE.getRGB()) {
+                    trimRightWidthList.add(width-i);
+                }
+            }
+        }
+        // 获取图片底部最小空白高度
+        if (trimRightWidthList.size() > 0) {
+            return trimRightWidthList.stream().min(Integer::compareTo).get();
+        }
+        return 0;
+    }
 
     /**
      * 获取左空白最低高宽度
@@ -77,21 +93,22 @@ public class ImageUtils {
      * @param img 图片
      * @return
      */
-    private Integer getTrimLeftBlankHeight(BufferedImage img) {
-//        int width = img.getWidth();
-//        int height = img.getHeight();
-//        List<Integer> trimLeftHeightList = new ArrayList<>();
-//        for (int j = 0; j < height; j++) {
-//            for (int i = 0; i < width; i++) {
-//                if (img.getRGB(i, j) != Color.WHITE.getRGB()) {
-//                    trimLeftHeightList.add(j);
-//                }
-//            }
-//        }
-//        // 获取图片底部最小空白高度
-//        if (trimLeftHeightList.size() > 0) {
-//            return trimLeftHeightList.stream().min(Integer::compareTo).get();
-//        }
+    private Integer getTrimLeftBlankWidth(BufferedImage img) {
+        int width = img.getWidth();
+        int height = img.getHeight();
+        List<Integer> trimLeftWidthList = new ArrayList<>();
+        for (int j = 0; j < height; j++) {
+//        for (int j = height - 1; j >= 0; j--) {
+            for (int i = 0; i < width; i++) {
+                if (img.getRGB(i, j) != Color.WHITE.getRGB()) {
+                    trimLeftWidthList.add(i);
+                }
+            }
+        }
+        // 获取图片底部最小空白高度
+        if (trimLeftWidthList.size() > 0) {
+            return trimLeftWidthList.stream().min(Integer::compareTo).get();
+        }
         return 0;
     }
 

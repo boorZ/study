@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 public class ExcelUtils {
 
     /** 读取Excel数据 **/
-    public Workbook readExcel(String filePath) {
+    public static Workbook readExcel(String filePath) {
         Workbook workbook = null;
         try {
             InputStream is = new FileInputStream(new File(filePath));
@@ -38,7 +38,7 @@ public class ExcelUtils {
     }
 
     /** 获取Sheets数据 **/
-    public List<Map<Integer, Map<Integer, Object>>> getExcelData(String filePath, int rowNum){
+    public static List<Map<Integer, Map<Integer, Object>>> getExcelData(String filePath, int rowNum){
         // 循环工作表Sheet
         Workbook sheets = readExcel(filePath);
         if (sheets == null) {
@@ -74,8 +74,8 @@ public class ExcelUtils {
             e.printStackTrace();
         }
         return sheetsDataList;
-    }
-    @Test
+
+    }    @Test
     public void readExcels() {
         List<Map<Integer, Map<Integer, Object>>> excelData = getExcelData("C:\\Users\\Admin\\Desktop\\高频业务文件对照表 2.0.xlsx", 3);
         Map<Object, Object> fullData = new LinkedHashMap<>();

@@ -56,7 +56,7 @@ public class JsonUtils {
                         JSONObject jsonObject = JSON.parseObject(o.toString());
                         word += jsonObject.get("word").toString()+"\n";
                     }
-                    writeText(new File("C:\\Users\\Administrator\\Desktop\\1.txt"), word);
+                    writeText(new File("C:\\Users\\Card\\Desktop\\1.txt"), word);
                     System.out.println();
 //                    wordJsons.add(JSONObject.parseObject(name));
                     break;

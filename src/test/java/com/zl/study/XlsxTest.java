@@ -22,8 +22,8 @@ public class XlsxTest {
         Row row;
         List<Map<String,String>> list = null;
         String cellData;
-//        String filePath = "C:\\Users\\Administrator\\Desktop\\导入模板验证.xlsx";
-        String filePath = "C:\\Users\\Administrator\\Desktop\\test.xlsx";
+//        String filePath = "C:\\Users\\Card\\Desktop\\导入模板验证.xlsx";
+        String filePath = "C:\\Users\\Card\\Desktop\\test.xlsx";
         String[] columns = {"图谱名称", "标签", "节点名称", "文号", "文件编号", "发布日期", "文件有效期止", "税种"};
         wb = readExcel(filePath);
         if(wb != null){

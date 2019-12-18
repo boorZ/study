@@ -140,7 +140,7 @@ public class PDFUtils {
 
     public static void main(String[] args) {
         pdf2multiImage("E:\\拆分文档（表证单书）\\问题表单解决\\pdf\\A03055《非居民纳税人税收居民身份信息报告表（企业适用）》.pdf",
-                "C:\\Users\\Administrator\\Desktop\\4.jpg");
+                "C:\\Users\\Card\\Desktop\\4.jpg");
         //pdfToImagePath("D:\\不问科技\\开发\\图片处理\\A10095.pdf");
     }
 }

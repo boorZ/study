@@ -26,7 +26,7 @@ public class excelUtils {
     public void mainsd() {
         Workbook wb;
         List<Map<String,Object>> list = new ArrayList<>();
-        String filePath = "C:\\Users\\Administrator\\Desktop\\doc\\高频业务文件对照表 2.0.xlsx";
+        String filePath = "C:\\Users\\Card\\Desktop\\doc\\高频业务文件对照表 2.0.xlsx";
         wb = readExcel(filePath);
         if(wb != null){
             //获取第一个sheet
