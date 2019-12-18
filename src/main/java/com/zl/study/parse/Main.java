@@ -3,8 +3,7 @@ package com.zl.study.parse;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 
 /**
  * @author 周林
@@ -13,50 +12,112 @@ import java.util.concurrent.Executors;
  * @date 2019/11/18 10:38
  */
 public class Main {
+    private File images = new File("C:\\Users\\Admin\\Desktop\\form");
 
-
-    /** 去除图片底部空白 **/
+    /**
+     * 去除图片底部空白
+     **/
     @Test
     public void trimImageBottomBlank() {
-//        File images = new File("E:\\拆分文档（表证单书）\\表证单书清理\\fullNewImage");
-//        String newPath = "E:\\拆分文档（表证单书）\\表证单书清理\\fullNewTrimBottomBlankImage";
-//        File[] files = images.listFiles();
-//        for (File file : files) {
-//            File newPathFile = new File(newPath + "\\" + file.getName());
-//            ImageUtils imageUtils = new ImageUtils(file);
-//            imageUtils.trimFourSidesBlank(newPathFile, "png", 0, 0, 0, 0);
-//        }
-
-
-//        File sourceFile = new File("C:\\Users\\Card\\Desktop\\0cae6186-9519-43d8-a669-380d4107a72c.jpg");
-//        File targetFile = new File("C:\\Users\\Card\\Desktop\\1.jpg");
-//        ImageUtils imageUtils = new ImageUtils(sourceFile);
-//        imageUtils.trimFourSidesBlank(targetFile, "png", 0, 0, 0, 0);
-
-        //开线程
-        ExecutorService threadPool = Executors.newScheduledThreadPool(10);
-        TrimFourSidesBlank trimFourSidesBlank = new TrimFourSidesBlank();
-        threadPool.submit(trimFourSidesBlank);
+        ExecutorService threadPool = Executors.newScheduledThreadPool(1);
+        File[] files = images.listFiles();
+        if (files == null) {
+            System.out.println("该目录下没有子目录！！");
+            return;
+        }
+        int count = 0;
+        for (File file : files) {
+            String newPath = "C:\\Users\\Admin\\Desktop\\newForm";
+            TrimFourSidesBlank trimFourSidesBlank = new TrimFourSidesBlank(file, newPath);
+            threadPool.submit(trimFourSidesBlank);
+            count ++;
+            if (count > 0) {
+                System.out.println(count);
+            }
+        }
         threadPool.shutdown();
     }
-
     static class TrimFourSidesBlank implements Runnable {
-        private File images = new File("C:\\Users\\Card\\Desktop\\form");
-        private String newPath = "C:\\Users\\Card\\Desktop\\newForm";
+        private File sourceFile;
+        private String targetFilePath;
+
+        TrimFourSidesBlank(File sourceFile, String targetFilePath) {
+            this.sourceFile = sourceFile;
+            this.targetFilePath = targetFilePath;
+        }
 
         @Override
         public void run() {
-            File[] files = images.listFiles();
-            int length = files.length;
-//            File newPathFile = new File(newPath + "\\" + file.getName());
-//            ImageUtils imageUtils = new ImageUtils(file);
-//            imageUtils.trimFourSidesBlank(newPathFile, "png", 0, 0, 0, 0);
             synchronized (this) {
-                if (length > 0) {
-                    System.out.println("长度：" + length);
-                    length--;
+                try {
+                    System.out.println(Thread.currentThread().getName() + "---进入线程");
+                    File newPathFile = new File(targetFilePath + "\\" + sourceFile.getName());
+                    ImageUtils imageUtils = new ImageUtils(sourceFile);
+                    Thread.sleep(1000);
+                    imageUtils.trimFourSidesBlank(newPathFile, "png", 0, 0, 0, 0);
+                    System.out.println("结束线程");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println("error");
+                } finally {
+                    System.out.println("OK!!!");
                 }
             }
+
+        }
+    }
+
+    @Test
+    public void trimImageBottomBlankCallable() {
+        ExecutorService threadPool = Executors.newFixedThreadPool(1);
+        File[] files = images.listFiles();
+        if (files == null) {
+            System.out.println("该目录下没有子目录！！");
+            return;
+        }
+        for (File file : files) {
+            File newPathFile = new File("C:\\\\Users\\\\Admin\\\\Desktop\\\\newForm\\" + file.getName());
+            ImageUtils imageUtils = new ImageUtils(file);
+            imageUtils.trimFourSidesBlank(newPathFile, "png", 0, 0, 0, 0);
+//            String newPath = "C:\\Users\\Admin\\Desktop\\newForm";
+//            TrimFourSidesBlankCallable trimFourSidesBlank = new TrimFourSidesBlankCallable(file, newPath);
+//            Future<Boolean> submit = threadPool.submit(trimFourSidesBlank);
+//            try {
+//                if (submit.get()) {
+//
+//                }
+//            } catch (InterruptedException | ExecutionException e) {
+//                e.printStackTrace();
+//            }
+//            System.out.println(file.getPath());
+        }
+    }
+    static class TrimFourSidesBlankCallable implements Callable<Boolean> {
+        private File sourceFile;
+        private String targetFilePath;
+
+        TrimFourSidesBlankCallable(File sourceFile, String targetFilePath) {
+            this.sourceFile = sourceFile;
+            this.targetFilePath = targetFilePath;
+        }
+        @Override
+        public Boolean call() {
+            synchronized (this) {
+                try {
+                    System.out.println(Thread.currentThread().getName() + "---进入线程");
+                    File newPathFile = new File(targetFilePath + "\\" + sourceFile.getName());
+                    ImageUtils imageUtils = new ImageUtils(sourceFile);
+                    imageUtils.trimFourSidesBlank(newPathFile, "png", 0, 0, 0, 0);
+                    System.out.println("结束线程");
+                    return true;
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    System.out.println("error");
+                }
+            }
+            return null;
         }
     }
 }
+
+
